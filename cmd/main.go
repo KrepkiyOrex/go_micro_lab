@@ -10,6 +10,7 @@ import (
 	"go_micro_lab/internal/api/grpc"
 	"go_micro_lab/internal/repository/postgres"
 	redisrepo "go_micro_lab/internal/repository/redis"
+	"go_micro_lab/internal/usecase"
 
 	_ "github.com/lib/pq"
 	redislib "github.com/redis/go-redis/v9"
