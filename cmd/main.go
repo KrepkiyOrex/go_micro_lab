@@ -1,14 +1,19 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net"
 	"time"
 
+	"go_micro_lab/internal/api/grpc"
 	"go_micro_lab/internal/repository/postgres"
+	redisrepo "go_micro_lab/internal/repository/redis"
+	"go_micro_lab/internal/usecase"
 
 	_ "github.com/lib/pq"
+	redislib "github.com/redis/go-redis/v9"
 	grpclib "google.golang.org/grpc"
 )
 
@@ -29,7 +34,25 @@ func main() {
 	}
 	log.Println("✅ Connected to PostgreSQL")
 
+	rdb := redislib.NewClient(&redislib.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		log.Fatalf("Redis ping failed: %v", err)
+	}
+	log.Println("✅ Connected to Redis")
+
 	postgresRepo := postgres.New(db)
+	cachRepo := redisrepo.New(rdb)
+
+	taskUsecase := usecase.NewTaskUsecase(postgresRepo, cachRepo, nil)
+
+	taskServer := grpc.NewTaskServer(taskUsecase)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
