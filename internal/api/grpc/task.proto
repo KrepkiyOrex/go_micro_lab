@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package task;
+
+option go_package = "go_micro_lab/internal/api/grpc;grpc";
+
+service TaskService {
+    rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+    rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+}
+
+message CreateTaskRequest {
+    string payload = 1;
+}
+
+message CreateTaskResponse {
+    string id = 1;
+    string status = 2;
+}
+
+message GetTaskRequest {
+    string id = 1;
+}
+
+message GetTaskResponse {
+    string id = 1;
+    string payload = 2;
+    string status = 3;
+}

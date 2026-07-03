@@ -15,6 +15,7 @@ import (
 	_ "github.com/lib/pq"
 	redislib "github.com/redis/go-redis/v9"
 	grpclib "google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -52,6 +53,8 @@ func main() {
 
 	taskUsecase := usecase.NewTaskUsecase(postgresRepo, cachRepo, nil)
 
+	// создаем gRPC сервер и привязываем к нему нашу бизнес логику
+	// "адаптер" превращает gRPC запросы в вызовы usecase
 	taskServer := grpc.NewTaskServer(taskUsecase)
 
 	listener, err := net.Listen("tcp", ":50051")
@@ -60,6 +63,8 @@ func main() {
 	}
 
 	grpcServer := grpclib.NewServer()
+	grpc.RegisterTaskServiceServer(grpcServer, taskServer)
+	reflection.Register(grpcServer)
 
 	log.Println("🚀 gRPC server running on :50051")
 	if err := grpcServer.Serve(listener); err != nil {
